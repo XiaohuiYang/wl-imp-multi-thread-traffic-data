@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.jcr.RepositoryException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.commons.json.JSONArray;
 import org.apache.sling.commons.json.JSONException;
@@ -50,38 +51,44 @@ public class CampaignTrafficDataSummary2 {
 				if (cacheManager != null) {
 					cachedData = cacheManager.get(info.getCampaignId());
 				}
-				if (!summaryTrafficDataFromCache(cachedData, info, startDate, endDate)) {
+				if (!summaryTrafficDataFromCache(cachedData, info.getCampaignId(), startDate, endDate)) {
 					logger.debug("Campaign Data is missing in cache : " + info.getCampaignId());
 					JSONObject json = findCampaignService.getTrafficDataForCampaigns(resourceResolver, info.getCampaignId(), info.getCampaignName(), startDate, endDate);
 					summaryTraffic(info,json);
 					builderJson(info);
 				}
-				if (resultSB.length() > 0 && resultSB.charAt(resultSB.length() -1) != ',') {
-					resultSB.append(",");
-				}
 			}
 		}
 		logger.debug("End of campaigns data retriving.");
-		return resultSB.length() > 0 ? resultSB.substring(0, resultSB.length() -1) : "";
+		return (resultSB.length() > 0) ? resultSB.substring(0, resultSB.length() -1) : "";
 	}
 
 	private void getAllFromCache(String startDate, String endDate,
 			String productReference, String focus, String targetMarketGeography, String targetMarketLanguage) {
 		Iterator<Entry<String, CachedCampaignInfo>> iter = cacheManager.getCacheIterator();
+		logger.debug("Begin get all campaigns info from cache.");
+		int i = 0;
 		while (iter.hasNext()) {
 			Entry<String, CachedCampaignInfo> item = iter.next();
-			if (!validate(productReference, focus,  targetMarketGeography, targetMarketLanguage)) {
-				continue;
+			try {
+			i++;
+				if (!validate(item.getValue(), productReference, focus,  targetMarketGeography, targetMarketLanguage)) {
+					continue;
+				}
+			}catch (Exception e) {
+				logger.error(item.getKey() + cacheManager.get(item.getKey()).getCampaignName() + i, e);
+				break;
 			}
-			summaryTrafficDataFromCache(item.getValue(), null, startDate, endDate);
+			summaryTrafficDataFromCache(item.getValue(), item.getKey(), startDate, endDate);
 		}
-		
+		logger.debug("End get all campaigns info from cache.");
 	}
 
-	private boolean validate(String productReference, String focus,
+	private boolean validate(CachedCampaignInfo info, String productReference, String focus,
 			String targetMarketGeography, String targetMarketLanguage) {
-		// To be Done;
-		return false;
+		return  (StringUtils.isBlank(productReference) || info.getProductReference().equalsIgnoreCase(productReference)) && 
+				(StringUtils.isBlank(focus) || info.getFocus().equalsIgnoreCase(focus)) && 
+				((StringUtils.isBlank(targetMarketGeography) && StringUtils.isBlank(targetMarketLanguage)) || info.getLocale().equalsIgnoreCase(targetMarketLanguage + "-" + targetMarketGeography ));
 	}
 
 	private void builderJson(AnalyticsCampaignInfo info) {
@@ -92,7 +99,7 @@ public class CampaignTrafficDataSummary2 {
 		resultSB.append( "\"campaignName\":\"" + info.getCampaignName() + "\",");
 		resultSB.append( "\"summary\":");
 		buildInfoDataString(info);
-		resultSB.append( "}");
+		resultSB.append( "},");
 	}
 
 	private void buildInfoDataString(AnalyticsCampaignInfo info) {
@@ -106,22 +113,15 @@ public class CampaignTrafficDataSummary2 {
 	}
 
 	private boolean summaryTrafficDataFromCache(CachedCampaignInfo cachedData,
-			AnalyticsCampaignInfo info, String startDate, String endDate) {
+			String campaignId, String startDate, String endDate) {
 		if (cachedData == null) {
-			if ( cacheManager != null) {
-				if (cacheManager.isCachedAll()) {
-					return true;
-				}
-			}
+			return (cacheManager != null && cacheManager.isCachedAll());
 		}
-			//return (cacheManager != null && cacheManager.isCachedAll());
 		
 		int impressions = 0;
 		double reach = 0.0;
 		int users = 0;
 		int clicks = 0;
-		
-		
 		int lowDate = Integer.parseInt(startDate.replaceAll("-", ""));
 		int highDate = Integer.parseInt(endDate.replaceAll("-", ""));
 		boolean hasData = false;
@@ -138,20 +138,19 @@ public class CampaignTrafficDataSummary2 {
 		if (!hasData) {
 			return true;
 		}
-		double ctr = ((impressions == 0) ? 0.0 : clicks / impressions);
+		double ctr = ((impressions == 0) ? 0.0 : (double)clicks / impressions);
 		
 		resultSB.append("{");
-		resultSB.append("\"campaignId\":\"" + info.getCampaignId() + "\",");
-		resultSB.append("\"campaignName\":\"" + info.getCampaignName() + "\",");
+		resultSB.append("\"campaignId\":\"" + campaignId + "\",");
+		resultSB.append("\"campaignName\":\"" + cachedData.getCampaignName() + "\",");
 		resultSB.append("\"summary\":");
 		buildSummaryString(impressions, reach, users, clicks, ctr);
-		resultSB.append("}");
+		resultSB.append("},");
 		return true;
 	}
 
 	
-	private void buildSummaryString(int impressions, double reach, int users,
-			int clicks, double ctr) {
+	private void buildSummaryString(int impressions, double reach, int users, int clicks, double ctr) {
 		resultSB.append("{" );
 		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_IMPRESSIONS +"\":" + impressions + ",");
 		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_REACH +"\":" + reach + ",");
@@ -213,6 +212,5 @@ public class CampaignTrafficDataSummary2 {
 		}
 		return result;
 	}
-
 
 }

@@ -47,12 +47,10 @@ public class FindCampaignsForAggregateTrafficServlet2 extends SlingAllMethodsSer
 		this.doPost(request, response);
 	}
 	
-	@SuppressWarnings("unused")
 	@Override
 	protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) throws ServletException, IOException
 	{
 		ResourceResolver resourceResolver = request.getResourceResolver();
-		IMPJSONResponseWriter responseWriter = new IMPJSONResponseWriter(response);
 		
 		String productReference = request.getParameter("productReference");
 		String focus = request.getParameter("focus");
@@ -65,7 +63,7 @@ public class FindCampaignsForAggregateTrafficServlet2 extends SlingAllMethodsSer
 		try
 		{
 			List<AnalyticsCampaignInfo> campaignInfos = null;
-			if (true || cacheManager == null || !cacheManager.isCachedAll() ) {
+			if (cacheManager == null || !cacheManager.isCachedAll() ) {
 				campaignInfos = findCampaignService.getCampaignsForTraffic(resourceResolver, productReference, focus, targetMarketGeography, targetMarketLanguage, startDate, endDate);
 				if (campaignInfos == null) {
 					campaignInfos = new ArrayList<AnalyticsCampaignInfo>();
@@ -86,7 +84,7 @@ public class FindCampaignsForAggregateTrafficServlet2 extends SlingAllMethodsSer
 		}
 		catch (Throwable e) 
 		{
-			logger.error("Unable to create JSON Object", e);
+			logger.error("", e);
 		}
 		finally
 		{
