@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 
 import com.adobe.acs.imp.analytics.business.AnalyticsCampaignInfo;
 import com.adobe.acs.imp.analytics.service.FindCampaignsForAggregateAnalyticsService;
+import com.adobe.acs.imp.cache.CacheManager;
 import com.adobe.acs.imp.core.infrastructure.ImpLoggerFactory;
 
 public class CampaignTrafficDataSummary {
@@ -22,8 +23,7 @@ public class CampaignTrafficDataSummary {
 	private FindCampaignsForAggregateAnalyticsService findCampaignService;
 	private final Logger logger = ImpLoggerFactory.getLogger(CampaignTrafficDataSummary.class);
 
-	public CampaignTrafficDataSummary(
-			FindCampaignsForAggregateAnalyticsService findCampaignService) {
+	public CampaignTrafficDataSummary(FindCampaignsForAggregateAnalyticsService findCampaignService) {
 		this.findCampaignService = findCampaignService;
 	}
 
