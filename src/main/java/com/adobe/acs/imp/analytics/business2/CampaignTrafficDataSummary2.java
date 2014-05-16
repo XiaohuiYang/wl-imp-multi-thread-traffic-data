@@ -1,5 +1,6 @@
 package com.adobe.acs.imp.analytics.business2;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -81,6 +82,7 @@ public class CampaignTrafficDataSummary2 {
 			}
 			summaryTrafficDataFromCache(item.getValue(), item.getKey(), startDate, endDate);
 		}
+		cacheManager.releaseIterator();
 		logger.debug("End get all campaigns info from cache.");
 	}
 
@@ -103,12 +105,14 @@ public class CampaignTrafficDataSummary2 {
 	}
 
 	private void buildInfoDataString(AnalyticsCampaignInfo info) {
+		DecimalFormat formatter =  new DecimalFormat();
+		formatter.setMaximumFractionDigits(3);
 		resultSB.append( "{" );
 		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_IMPRESSIONS +"\":" + info.getMap().get( AnalyticsJcrConstants.TRAFFIC_IMPRESSIONS) + ",");
-		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_REACH +"\":" + info.getMap().get( AnalyticsJcrConstants.TRAFFIC_REACH) + ",");
+		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_REACH +"\":" + formatter.format(info.getMap().get( AnalyticsJcrConstants.TRAFFIC_REACH)) + ",");
 		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_USERS +"\":" + info.getMap().get( AnalyticsJcrConstants.TRAFFIC_USERS) + ",");
 		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_CLICKS +"\":" + info.getMap().get( AnalyticsJcrConstants.TRAFFIC_CLICKS) + ",");
-		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_CTR +"\":" + info.getMap().get( AnalyticsJcrConstants.TRAFFIC_CTR));
+		resultSB.append( "\""+ AnalyticsJcrConstants.TRAFFIC_CTR +"\":" + formatter.format(info.getMap().get(AnalyticsJcrConstants.TRAFFIC_CTR)));
 		resultSB.append( "}");
 	}
 
@@ -151,12 +155,14 @@ public class CampaignTrafficDataSummary2 {
 
 	
 	private void buildSummaryString(int impressions, double reach, int users, int clicks, double ctr) {
+		DecimalFormat formatter =  new DecimalFormat();
+		formatter.setMaximumFractionDigits(3);
 		resultSB.append("{" );
 		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_IMPRESSIONS +"\":" + impressions + ",");
-		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_REACH +"\":" + reach + ",");
+		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_REACH +"\":" + formatter.format(reach) + ",");
 		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_USERS +"\":" + users + ",");
 		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_CLICKS +"\":" + clicks + ",");
-		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_CTR +"\":" + ctr);
+		resultSB.append("\""+ AnalyticsJcrConstants.TRAFFIC_CTR +"\":" + formatter.format(ctr));
 		resultSB.append("}");
 	}
 
@@ -184,7 +190,6 @@ public class CampaignTrafficDataSummary2 {
 		}else {
 			ctr = clicks / impressions;
 		}
-
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(AnalyticsJcrConstants.TRAFFIC_IMPRESSIONS, new Double(impressions));

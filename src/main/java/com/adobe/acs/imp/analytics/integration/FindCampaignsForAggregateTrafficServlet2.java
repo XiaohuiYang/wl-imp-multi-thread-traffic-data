@@ -1,11 +1,14 @@
 package com.adobe.acs.imp.analytics.integration;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
@@ -22,7 +25,6 @@ import com.adobe.acs.imp.analytics.business.AnalyticsCampaignInfo;
 import com.adobe.acs.imp.analytics.business2.CampaignTrafficDataSummary2;
 import com.adobe.acs.imp.analytics.service.FindCampaignsForAggregateAnalyticsService;
 import com.adobe.acs.imp.cache.CacheManager;
-import com.adobe.acs.imp.core.integration.IMPJSONResponseWriter;
 
 @Component(metatype = true, label = "Query Related Campaign Paths For Analytics Page2",
 description = "Servlet for querying related campaign paths for analytics page2")
@@ -79,7 +81,7 @@ public class FindCampaignsForAggregateTrafficServlet2 extends SlingAllMethodsSer
 			//responseWriter.writeResponse(responseBuilderStr);
 			response.setContentType("application/json");
 			response.setCharacterEncoding("UTF-8");
-			response.getOutputStream().print(responseBuilderStr);
+			response.getWriter().print(responseBuilderStr);
 			logger.debug("after write ");
 		}
 		catch (Throwable e) 
@@ -96,4 +98,17 @@ public class FindCampaignsForAggregateTrafficServlet2 extends SlingAllMethodsSer
 			}
 		}
 	}
+
+//	private String gzip(String json, SlingHttpServletResponse response) {
+//		try {
+//			ByteArrayOutputStream out = new  ByteArrayOutputStream();
+//			GZIPOutputStream zipper = new GZIPOutputStream(out);
+//			zipper.write(json.getBytes());
+//			zipper.close();
+//			response.setHeader("Content-Encoding", "gzip");
+//			return out.toString();
+//		} catch (IOException e) {
+//			return json;
+//		}
+//	}
 }
